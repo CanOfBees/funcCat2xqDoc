@@ -33,8 +33,9 @@ declare %private function local:header(
 ) as xs:string* {
 	'(:~ ' || out:nl() ||
 	' : ' || local:summary($nodes/fos:summary) || out:nl() ||
-	' : ' || out:nl() ||
-	local:rules($nodes/fos:rules) || out:nl() ||
+	' : ' || out:nl(),
+	for $r in local:rules($nodes/fos:rules)
+	return( $r ),
 	' :)' || out:nl()
 };
 
@@ -59,7 +60,7 @@ declare %private function local:rules(
 ) as xs:string* {
 	for $p in $nodes/p
 	return(
-		' : ' || local:condense-text($p) || out:nl() ||
+		' : ' || local:condense-text($p) || out:nl(),
 		' : ' || out:nl()
 	)
 };
@@ -108,26 +109,21 @@ declare %private function local:munge-text(
 declare %private function local:spec-heading(
 	$node as node()*
 ) as xs:string* {
-	(:' [ INSERT HEADING FOR ' || $node/@ref/data() || ']',:)
-	(:' [ INSERT HEADING FOR ' || $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]//text()[1] || ']' || out:nl(),:)
-	(:for $s in $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]:)
-	(:let $s := ($ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]):)
-	(:
+	let $spec-toc := $ref-doc/html/body/nav[@id='toc']/ol[@class='toc']
+	let $spec-ref := $node/@ref/data()
+	let $spec-span := $spec-toc/descendant::a[fn:matches(fn:substring-after(@href/data(), '#'), $spec-ref)]/span
 	return(
-		(:$s[1]/text() || ' ' || $s[2]/text() || '???',:)
-		(:fn:string(count($s)),:)
-		(:fn:string-join($s, '<->'):)
-		(:fn:string(count($s)),:)
-		(:$node/@ref/data():)
-		(:'abc':)
+		'[' || fn:string-join($spec-span/text(), ' ') || ']'
 	)
-	:)
 };
 
-for $func in fn:doc($func-doc)//fos:function[@prefix='fn']
+for $func in fn:doc($func-doc)//fos:function[@prefix='fn'][@name='abs']
 order by $func/@name/data() ascending
 return(
-	(:local:header($func):)
+	local:header($func)
+	(:local:rules($func/fos:rules):) (: works :)
+	(:local:rules(<fos:rules><p>abc 1 2 3 <specref ref="numeric-value-functions"/>.</p><p>def 2 3 4.</p></fos:rules>):) (:works:)
 	(:local:rules($func[@name='abs']/fos:rules):)
-	local:spec-heading($func[@name='abs']/fos:rules/p[1]/specref)
+	(:local:spec-heading($func[@name='abs']/fos:rules/p[1]/specref):)
+	(:local:spec-heading(<specref ref="numeric-value-functions"/>):)
 )
