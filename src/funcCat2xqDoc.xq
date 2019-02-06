@@ -112,14 +112,16 @@ declare %private function local:spec-heading(
 	(:' [ INSERT HEADING FOR ' || $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]//text()[1] || ']' || out:nl(),:)
 	(:for $s in $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]:)
 	(:let $s := ($ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]):)
-	(:return(:)
+	(:
+	return(
 		(:$s[1]/text() || ' ' || $s[2]/text() || '???',:)
 		(:fn:string(count($s)),:)
 		(:fn:string-join($s, '<->'):)
 		(:fn:string(count($s)),:)
 		(:$node/@ref/data():)
 		(:'abc':)
-	(:):)
+	)
+	:)
 };
 
 for $func in fn:doc($func-doc)//fos:function[@prefix='fn']
