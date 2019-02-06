@@ -21,6 +21,7 @@ xquery version "3.1" encoding "UTF-8";
 import module namespace functx = "http://www.functx.com";
 declare namespace fos = "http://www.w3.org/xpath-functions/spec/namespace";
 declare variable $func-doc external := "resources/function-catalog.xml";
+declare variable $ref-doc external := fn:doc("resources/function-catalog.xhtml");
 
 (:~
  : Serialize the xqDoc doc block
@@ -33,6 +34,7 @@ declare %private function local:header(
 	'(:~ ' || out:nl() ||
 	' : ' || local:summary($nodes/fos:summary) || out:nl() ||
 	' : ' || out:nl() ||
+	local:rules($nodes/fos:rules) || out:nl() ||
 	' :)' || out:nl()
 };
 
@@ -47,6 +49,20 @@ declare %private function local:summary(
 	local:condense-text($nodes)
 };
 
+(:~
+ : Serialize a function's rules.
+ : @param $nodes as node()*
+ : @return xs:string*
+ :)
+declare %private function local:rules(
+	$nodes as node()*
+) as xs:string* {
+	for $p in $nodes/p
+	return(
+		' : ' || local:condense-text($p) || out:nl() ||
+		' : ' || out:nl()
+	)
+};
 (:~
  : Try to automatically correct whitespace issues.
  : @param $nodes as node()*
@@ -69,6 +85,7 @@ declare %private function local:extract-text(
 	for $node in $nodes
 	return typeswitch($node)
 		case text() return local:munge-text($node)
+		case element(specref) return local:spec-heading($node)
 		default return local:extract-text($node/node())
 };
 
@@ -88,8 +105,27 @@ declare %private function local:munge-text(
 	)
 };
 
+declare %private function local:spec-heading(
+	$node as node()*
+) as xs:string* {
+	(:' [ INSERT HEADING FOR ' || $node/@ref/data() || ']',:)
+	(:' [ INSERT HEADING FOR ' || $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]//text()[1] || ']' || out:nl(),:)
+	(:for $s in $ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]:)
+	(:let $s := ($ref-doc//a[@shape='rect'][fn:contains(@href/data(), $node/@ref/data())]/span[@class]):)
+	(:return(:)
+		(:$s[1]/text() || ' ' || $s[2]/text() || '???',:)
+		(:fn:string(count($s)),:)
+		(:fn:string-join($s, '<->'):)
+		(:fn:string(count($s)),:)
+		(:$node/@ref/data():)
+		(:'abc':)
+	(:):)
+};
+
 for $func in fn:doc($func-doc)//fos:function[@prefix='fn']
 order by $func/@name/data() ascending
 return(
-	local:header($func)
+	(:local:header($func):)
+	(:local:rules($func[@name='abs']/fos:rules):)
+	local:spec-heading($func[@name='abs']/fos:rules/p[1]/specref)
 )
