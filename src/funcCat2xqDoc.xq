@@ -64,17 +64,17 @@ declare %private function local:summary(
 declare %private function local:properties-check(
   $nodes as node()*
 ) as xs:string* {
-  if ($nodes) then ("they're here!") else ("no properties!"),
-  for $prop in $nodes
-  let $arity := $prop/@arity/data()
-  let $props := $prop/fos:property/text()
+  for $node in $nodes
+  let $arity := if ($node/@arity)
+                then ('The ' || $node/@arity/data() || '-argument form of this function is ')
+                else ('This function is ')
+  let $props := $node//fos:property
+  let $combined as item()* := for $prop in $props
+                   return if ($prop is $props[fn:last()])
+                          then ('[' || $prop/text() || '].')
+                          else ('[' || $prop/text() || '], ')
   return(
-    ' : ' || 'The ' || $arity || '-argument form of this function is ',
-    for $p in $props
-    return(
-      '[' || $p || ']'
-    ),
-    '.'
+    ' : ' || $arity || $combined || out:nl()
   )
 };
 
@@ -144,7 +144,7 @@ declare %private function local:spec-heading(
 	)
 };
 
-for $func in fn:doc($func-doc)//fos:function[@prefix='fn'][@name='abs']
+for $func in fn:doc($func-doc)//fos:function[@prefix='fn'][@name='node-name']
 order by $func/@name/data() ascending
 return(
 	local:header($func)
