@@ -23,6 +23,8 @@ declare namespace fos = "http://www.w3.org/xpath-functions/spec/namespace";
 declare variable $func-doc external := "resources/function-catalog.xml";
 declare variable $ref-doc external := fn:doc("resources/function-catalog.xhtml");
 
+declare variable $link-url := "https://www.w3.org/TR/xpath-functions-31/#";
+
 (:~
  : Serialize the xqDoc doc block
  : @param $xml as node()*
@@ -34,8 +36,12 @@ declare %private function local:header(
 	'(:~ ' || out:nl() ||
 	' : ' || local:summary($nodes/fos:summary) || out:nl() ||
 	' : ' || out:nl(),
+  local:properties-check($nodes/fos:properties),
+	' : ' || out:nl(),
 	for $r in local:rules($nodes/fos:rules)
-	return( $r ),
+	return(
+	' : ' || $r || out:nl()
+	),
 	' :)' || out:nl()
 };
 
@@ -51,6 +57,28 @@ declare %private function local:summary(
 };
 
 (:~
+ : Check for properties and serialize strings if present
+ : @param $nodes as node()*
+ : @return xs:string*
+ :)
+declare %private function local:properties-check(
+  $nodes as node()*
+) as xs:string* {
+  if ($nodes) then ("they're here!") else ("no properties!"),
+  for $prop in $nodes
+  let $arity := $prop/@arity/data()
+  let $props := $prop/fos:property/text()
+  return(
+    ' : ' || 'The ' || $arity || '-argument form of this function is ',
+    for $p in $props
+    return(
+      '[' || $p || ']'
+    ),
+    '.'
+  )
+};
+
+(:~
  : Serialize a function's rules.
  : @param $nodes as node()*
  : @return xs:string*
@@ -60,9 +88,8 @@ declare %private function local:rules(
 ) as xs:string* {
 	for $p in $nodes/p
 	return(
-		' : ' || local:condense-text($p) || out:nl(),
-		' : ' || out:nl()
-	)
+	  local:condense-text($p)
+  )
 };
 (:~
  : Try to automatically correct whitespace issues.
