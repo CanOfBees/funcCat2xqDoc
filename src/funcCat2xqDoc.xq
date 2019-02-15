@@ -68,11 +68,8 @@ declare %private function local:properties-check(
   let $arity := if ($node/@arity)
                 then ('The ' || $node/@arity/data() || '-argument form of this function is ')
                 else ('This function is ')
-  let $props := $node//fos:property
-  let $combined as item()* := for $prop in $props
-                   return if ($prop is $props[fn:last()])
-                          then ('[' || $prop/text() || '].')
-                          else ('[' || $prop/text() || '], ')
+  let $props := for $p in $node//fos:property return('[' || $p || ']')
+  let $combined := fn:string-join($props, ' ')
   return(
     ' : ' || $arity || $combined || out:nl()
   )
