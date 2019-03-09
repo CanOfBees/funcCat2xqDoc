@@ -23,7 +23,7 @@ declare namespace fos = "http://www.w3.org/xpath-functions/spec/namespace";
 declare variable $func-doc external := "resources/function-catalog.xml";
 declare variable $ref-doc external := fn:doc("resources/function-catalog.xhtml");
 
-declare variable $link-url := "https://www.w3.org/TR/xpath-functions-31/#";
+declare variable $link-url := "https://www.w3.org/TR/xpath-functions/#";
 
 (:~
  : Serialize the xqDoc doc block
@@ -72,6 +72,20 @@ declare %private function local:properties-check(
   let $combined := fn:string-join($props, ' ')
   return(
     ' : ' || $arity || $combined || out:nl()
+  )
+};
+
+(:~
+ : Serialize a link to an XPath property
+ : @param $nodes as node()*, fos:properties
+ : @return xs:string
+ :)
+declare %private function local:properties-link(
+  $nodes as node()*
+) as xs:string* {
+  for $node in $nodes
+  return(
+  ' : ' || '@see ' || $link-url || $node/text() || out:nl()
   )
 };
 
