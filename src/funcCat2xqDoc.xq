@@ -34,6 +34,7 @@ declare %private function local:header(
 	$nodes as node()*
 ) as xs:string* {
 	'(:~ ' || out:nl() ||
+	local:func-name($nodes) || out:nl() ||
 	' : ' || local:summary($nodes/fos:summary) || out:nl() ||
 	' : ' || out:nl(),
   local:properties-check($nodes/fos:properties),
@@ -41,6 +42,10 @@ declare %private function local:header(
 	for $r in local:rules($nodes/fos:rules)
 	return(
 	' : ' || $r || out:nl()
+	),
+	for $p in $nodes/fos:properties/fos:property
+	return (
+	  local:properties-link($p)
 	),
 	' :)' || out:nl()
 };
@@ -76,6 +81,17 @@ declare %private function local:properties-check(
 };
 
 (:~
+ : Serialize the function name
+ : @param $node as node()
+ : @return xs:string
+ :)
+declare %private function local:func-name(
+  $nodes as node()*
+) as xs:string {
+  ' : ' || $nodes/@prefix/data() || ': ' || $nodes/@name/data()
+};
+
+(:~
  : Serialize a link to an XPath property
  : @param $nodes as node()*, fos:properties
  : @return xs:string
@@ -85,7 +101,7 @@ declare %private function local:properties-link(
 ) as xs:string* {
   for $node in $nodes
   return(
-  ' : ' || '@see ' || $link-url || $node/text() || out:nl()
+  ' : ' || '@see ' || $link-url || $node
   )
 };
 
