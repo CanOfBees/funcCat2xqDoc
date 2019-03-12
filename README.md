@@ -13,6 +13,8 @@ I've been using [BaseX](https://basex.org) to run this like so:
 $ basex src/funcCat2xqDoc.xq > some-file.txt
 ```
 
+Please note that this is a largely half-baked thing: while the formatting isn't completely broken, it's still so far from finished that it may as well be unusable.
+
 ## Where ##
 
 * **Mercurial:** [https://bitbucket.org/CanOfBees/funcCat2xqDoc](https://bitbucket.org/CanOfBees/funcCat2xqDoc)
