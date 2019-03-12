@@ -73,8 +73,8 @@ declare %private function local:properties-check(
   let $arity := if ($node/@arity)
                 then ('The ' || $node/@arity/data() || '-argument form of this function is ')
                 else ('This function is ')
-  let $props := for $p in $node//fos:property return('[' || $p || ']')
-  let $combined := fn:string-join($props, ' ')
+  let $props := for $p in $node//fos:property return fn:normalize-space($p)
+  let $combined := fn:string-join($props, ', ')
   return(
     ' : ' || $arity || $combined || out:nl()
   )
@@ -88,7 +88,7 @@ declare %private function local:properties-check(
 declare %private function local:func-name(
   $nodes as node()*
 ) as xs:string {
-  ' : ' || $nodes/@prefix/data() || ': ' || $nodes/@name/data()
+  ' : ' || $nodes/@prefix/data() || ':' || $nodes/@name/data()
 };
 
 (:~
@@ -101,7 +101,7 @@ declare %private function local:properties-link(
 ) as xs:string* {
   for $node in $nodes
   return(
-  ' : ' || '@see ' || $link-url || $node
+  ' : ' || '@see ' || $link-url || 'dt-' || $node
   )
 };
 
@@ -171,7 +171,7 @@ declare %private function local:spec-heading(
 	)
 };
 
-for $func in fn:doc($func-doc)//fos:function[@prefix='fn'][@name='node-name']
+for $func in fn:doc($func-doc)//fos:function
 order by $func/@name/data() ascending
 return(
 	local:header($func)
